@@ -57,13 +57,13 @@ export function HomePage() {
   };
   const handleConvert = () => {
     if (selectedCategory && toCurrency) {
-      const apiEndpoint = `https://xecdapi.xe.com/v1/convert_from.csv/?from=${selectedCategory}&to=${toCurrency}&amount=${amount}`;
+      const apiEndpoint = `https://xecdapi.xe.com/v1/convert_from/?from=${selectedCategory}&to=${toCurrency}&amount=${amount}`;
 
       axiosInstance
         .get(apiEndpoint)
         .then((response) => {
-          console.log(response.data);
-          setRetrievedAmount(response.data);
+          console.log(response.data.to[0].mid);
+          setRetrievedAmount(response.data.to[0].mid);
         })
         .catch((error) => {
           console.error(error);
@@ -113,7 +113,8 @@ export function HomePage() {
         <Button onClick={handleConvert}>Convert </Button>
         <Typography color={colors.grey.grey_200}>
           {amount}
-          {selectedCategory}={toCurrency}
+          {selectedCategory}={retrievedAmount}
+          {toCurrency}
         </Typography>
       </Stack>
     </Stack>
