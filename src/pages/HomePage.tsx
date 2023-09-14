@@ -12,12 +12,13 @@ import {
   ListItemIcon,
 } from '@mui/material';
 import { colors } from '../styles/color';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { axiosInstance } from '../services/AxiosInstance';
 import { Currency, GraphData } from '../models/Currency';
 import { Line } from 'react-chartjs-2';
 import LineChart from '../components/LineChart';
 import CurrencyFlag from 'react-currency-flags';
+import { convertCurrency, fetchCurrencies, fetchHistoricRates } from '../services/BaseFile';
 
 export function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -46,30 +47,25 @@ export function HomePage() {
     setToCurrency(value);
     setToCurrencies(value !== 'All Categories' ? [value] : []);
   };
-  const handleClick = () => {
-    axiosInstance
-      .get('/')
-      .then((response) => {
-        setCurrency(response.data.currencies);
-
-        const names = response.data.currencies.map(
-          (currency: { currency_name: any }) => currency.currency_name
-        );
+  useEffect(() => {
+    // Fetch currencies automatically when the page loads
+    fetchCurrencies()
+      .then((currencies) => {
+        setCurrency(currencies);
+        const names = currencies.map((currency: { currency_name: any }) => currency.currency_name);
         setFromCurrencies(names);
         setToCurrencies(names);
       })
       .catch((error) => {
         console.error(error);
       });
-  };
+  }, []);
+
   const handleConvert = () => {
     if (selectedCategory && toCurrency) {
-      const apiEndpoint = `https://xecdapi.xe.com/v1/convert_from/?from=${selectedCategory}&to=${toCurrency}&amount=${amount}`;
-
-      axiosInstance
-        .get(apiEndpoint)
-        .then((response) => {
-          setRetrievedAmount(response.data.to[0].mid);
+      convertCurrency(selectedCategory, toCurrency, amount)
+        .then((retrievedAmount) => {
+          setRetrievedAmount(retrievedAmount);
         })
         .catch((error) => {
           console.error(error);
@@ -78,12 +74,8 @@ export function HomePage() {
   };
   const handleConvertData = () => {
     if (selectedCategory && toCurrency) {
-      const apiEndpoint = `https://xecdapi.xe.com/v1/historic_rate/period/?from=${selectedCategory}&to=${toCurrency}&start_timestamp=2023-09-01&end_timestamp=2023-09-13&per_page=500`;
-
-      axiosInstance
-        .get(apiEndpoint)
-        .then((response) => {
-          const toCurrencyData = response.data.to[toCurrency];
+      fetchHistoricRates(selectedCategory, toCurrency)
+        .then((toCurrencyData) => {
           setGraphData(toCurrencyData);
         })
         .catch((error) => {
@@ -108,7 +100,7 @@ export function HomePage() {
           variant="outlined"
           size="small"
         />
-        <FormControl sx={{ width: '17vw', marginLeft: '40px' }} size="small">
+        <FormControl sx={{ width: '20vw', marginLeft: '40px' }} size="small">
           <InputLabel>From</InputLabel>
           <Select label="From" onChange={handleChange} value={selectedCategory}>
             <MenuItem value="All Categories">All Categories</MenuItem>
@@ -117,14 +109,15 @@ export function HomePage() {
                 <ListItemIcon>
                   <CurrencyFlag currency={ca.iso} />
                 </ListItemIcon>
-                <Typography pr={1}> {ca.iso}</Typography>
-
-                {ca.currency_name}
+                <Typography pr={1}>
+                  {' '}
+                  {ca.iso} {ca.currency_name}
+                </Typography>
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ width: '17vw', marginLeft: '40px' }} size="small">
+        <FormControl sx={{ width: '20vw', marginLeft: '40px' }} size="small">
           <InputLabel>To</InputLabel>
           <Select label="From" onChange={handleSecondChange} value={toCurrency}>
             <MenuItem value="All Currencies">All Currencies</MenuItem>
@@ -139,7 +132,6 @@ export function HomePage() {
             ))}{' '}
           </Select>
         </FormControl>
-        <Button onClick={handleClick}>click me </Button>
         <Button onClick={handleConvert}>Convert </Button>
         <Button onClick={handleConvertData}>Convert </Button>
 
@@ -150,7 +142,6 @@ export function HomePage() {
         </Typography>
       </Stack>
       <Stack sx={{ height: '50vh' }} p={2}>
-        {' '}
         <LineChart data={graphData} />
       </Stack>
     </Stack>
