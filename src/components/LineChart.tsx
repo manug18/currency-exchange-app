@@ -23,8 +23,11 @@ export default function LineChart({ data }: DataProps) {
     setGraphData(data);
   }, [data]);
 
-  const labels = graphData.map((item) => item.timestamp);
-
+  const labels = graphData.map((item) => {
+    const timestamp = new Date(item.timestamp);
+    const monthName = timestamp.toLocaleString('en-US', { month: 'long' });
+    return `${timestamp.getDate()} ${monthName}`;
+  });
   const dataset = {
     label: 'INR Mid Value',
     data: graphData.map((item) => item.mid),

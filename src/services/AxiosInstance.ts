@@ -21,6 +21,6 @@ const apiUrl = 'https://xecdapi.xe.com/v1/currencies';
   baseURL: apiUrl,
   headers: {
     'Authorization': `Basic ${basicAuthCredentials}`,
-    'Content-Type': 'application/json', // Set content type if needed
+    'Content-Type': 'application/json', // Set content type if neededx
   },
 });

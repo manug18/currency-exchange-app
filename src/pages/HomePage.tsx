@@ -8,6 +8,8 @@ import {
   Stack,
   Typography,
   TextField,
+  SvgIcon,
+  ListItemIcon,
 } from '@mui/material';
 import { colors } from '../styles/color';
 import { useState } from 'react';
@@ -15,6 +17,7 @@ import { axiosInstance } from '../services/AxiosInstance';
 import { Currency, GraphData } from '../models/Currency';
 import { Line } from 'react-chartjs-2';
 import LineChart from '../components/LineChart';
+import CurrencyFlag from 'react-currency-flags';
 
 export function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -32,6 +35,7 @@ export function HomePage() {
     setSelectedCategory(value);
     setFromCurrencies(value !== 'All Categories' ? [value] : []);
   };
+
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(event.target.value);
   };
@@ -65,7 +69,6 @@ export function HomePage() {
       axiosInstance
         .get(apiEndpoint)
         .then((response) => {
-          console.log(response.data.to[0].mid);
           setRetrievedAmount(response.data.to[0].mid);
         })
         .catch((error) => {
@@ -75,13 +78,13 @@ export function HomePage() {
   };
   const handleConvertData = () => {
     if (selectedCategory && toCurrency) {
-      const apiEndpoint = `https://xecdapi.xe.com/v1/historic_rate/period/?from=${selectedCategory}&to=${toCurrency}&start_timestamp=2023-09-12&end_timestamp=2023-09-13&per_page=500`;
+      const apiEndpoint = `https://xecdapi.xe.com/v1/historic_rate/period/?from=${selectedCategory}&to=${toCurrency}&start_timestamp=2023-09-01&end_timestamp=2023-09-13&per_page=500`;
 
       axiosInstance
         .get(apiEndpoint)
         .then((response) => {
-          console.log(response.data.to.INR);
-          setGraphData(response.data.to.INR);
+          const toCurrencyData = response.data.to[toCurrency];
+          setGraphData(toCurrencyData);
         })
         .catch((error) => {
           console.error(error);
@@ -89,15 +92,12 @@ export function HomePage() {
     }
   };
 
-  console.log(graphData);
-
   return (
     <Stack>
       <Typography color={colors.grey.grey_150} p={2} fontSize={25}>
         Currency Exchange Rates
       </Typography>
-      <LineChart data={graphData} />
-      {/* <Doughnut data={} /> */}
+
       <Stack direction={'row'}>
         <TextField
           sx={{ width: '17vw', marginLeft: '40px' }}
@@ -114,7 +114,12 @@ export function HomePage() {
             <MenuItem value="All Categories">All Categories</MenuItem>
             {currency.map((ca, index) => (
               <MenuItem key={index} value={ca.iso}>
-                {ca.iso} {ca.currency_name}
+                <ListItemIcon>
+                  <CurrencyFlag currency={ca.iso} />
+                </ListItemIcon>
+                <Typography pr={1}> {ca.iso}</Typography>
+
+                {ca.currency_name}
               </MenuItem>
             ))}
           </Select>
@@ -122,10 +127,13 @@ export function HomePage() {
         <FormControl sx={{ width: '17vw', marginLeft: '40px' }} size="small">
           <InputLabel>To</InputLabel>
           <Select label="From" onChange={handleSecondChange} value={toCurrency}>
-            <MenuItem value="All Categories">All Categories</MenuItem>
+            <MenuItem value="All Currencies">All Currencies</MenuItem>
             {currency.map((ca, index) => (
               <MenuItem key={index} value={ca.iso}>
-                {ca.iso}
+                <ListItemIcon>
+                  <CurrencyFlag currency={ca.iso} />
+                </ListItemIcon>
+                <Typography pr={1}> {ca.iso}</Typography>
                 {ca.currency_name}
               </MenuItem>
             ))}{' '}
@@ -140,6 +148,10 @@ export function HomePage() {
           {selectedCategory}={retrievedAmount}
           {toCurrency}
         </Typography>
+      </Stack>
+      <Stack sx={{ height: '50vh' }} p={2}>
+        {' '}
+        <LineChart data={graphData} />
       </Stack>
     </Stack>
   );
