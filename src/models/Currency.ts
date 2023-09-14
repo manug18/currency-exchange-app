@@ -4,3 +4,8 @@ export interface Currency {
  is_obsolete:string
     
 }
+
+export interface GraphData {
+    mid:string;
+    timestamp:Date
+}

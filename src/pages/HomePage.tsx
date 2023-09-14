@@ -12,7 +12,9 @@ import {
 import { colors } from '../styles/color';
 import { useState } from 'react';
 import { axiosInstance } from '../services/AxiosInstance';
-import { Currency } from '../models/Currency';
+import { Currency, GraphData } from '../models/Currency';
+import { Line } from 'react-chartjs-2';
+import LineChart from '../components/LineChart';
 
 export function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -20,6 +22,7 @@ export function HomePage() {
   const [fromCurrencies, setFromCurrencies] = useState<string[]>([]);
   const [toCurrencies, setToCurrencies] = useState<string[]>([]);
   const [currency, setCurrency] = useState<Currency[]>([]);
+  const [graphData, setGraphData] = useState<GraphData[]>([]);
   const [amount, setAmount] = useState<string>('1');
   const [retrievedAmount, setRetrievedAmount] = useState<string>('');
   const handleChange = (event: SelectChangeEvent<typeof selectedCategory>) => {
@@ -70,12 +73,31 @@ export function HomePage() {
         });
     }
   };
+  const handleConvertData = () => {
+    if (selectedCategory && toCurrency) {
+      const apiEndpoint = `https://xecdapi.xe.com/v1/historic_rate/period/?from=${selectedCategory}&to=${toCurrency}&start_timestamp=2023-09-12&end_timestamp=2023-09-13&per_page=500`;
+
+      axiosInstance
+        .get(apiEndpoint)
+        .then((response) => {
+          console.log(response.data.to.INR);
+          setGraphData(response.data.to.INR);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  };
+
+  console.log(graphData);
+
   return (
     <Stack>
       <Typography color={colors.grey.grey_150} p={2} fontSize={25}>
         Currency Exchange Rates
       </Typography>
-
+      <LineChart data={graphData} />
+      {/* <Doughnut data={} /> */}
       <Stack direction={'row'}>
         <TextField
           sx={{ width: '17vw', marginLeft: '40px' }}
@@ -111,6 +133,8 @@ export function HomePage() {
         </FormControl>
         <Button onClick={handleClick}>click me </Button>
         <Button onClick={handleConvert}>Convert </Button>
+        <Button onClick={handleConvertData}>Convert </Button>
+
         <Typography color={colors.grey.grey_200}>
           {amount}
           {selectedCategory}={retrievedAmount}
