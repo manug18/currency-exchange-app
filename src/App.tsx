@@ -13,9 +13,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowAnimation(false);
-    }, 5000);
-
-    // Clear the timer when the component unmounts
+    }, 4000);
     return () => clearTimeout(timer);
   }, []);
 

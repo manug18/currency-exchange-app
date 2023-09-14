@@ -29,7 +29,7 @@ export default function LineChart({ data }: DataProps) {
     return `${timestamp.getDate()} ${monthName}`;
   });
   const dataset = {
-    label: 'INR Mid Value',
+    label: 'Currency Mid Value',
     data: graphData.map((item) => item.mid),
     borderColor: 'rgb(255, 99, 132)',
     backgroundColor: 'rgba(255, 99, 132, 0.5)',
@@ -44,11 +44,7 @@ export default function LineChart({ data }: DataProps) {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Chart.js Line Chart',
+        position: 'bottom' as const,
       },
     },
   };

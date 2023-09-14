@@ -19,6 +19,7 @@ import { Line } from 'react-chartjs-2';
 import LineChart from '../components/LineChart';
 import CurrencyFlag from 'react-currency-flags';
 import { convertCurrency, fetchCurrencies, fetchHistoricRates } from '../services/BaseFile';
+import { CustomButton } from '../components/CustomButton';
 
 export function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -29,6 +30,8 @@ export function HomePage() {
   const [graphData, setGraphData] = useState<GraphData[]>([]);
   const [amount, setAmount] = useState<string>('1');
   const [retrievedAmount, setRetrievedAmount] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [graphLoading, setGraphLoading] = useState<boolean>(false);
   const handleChange = (event: SelectChangeEvent<typeof selectedCategory>) => {
     const {
       target: { value },
@@ -62,10 +65,12 @@ export function HomePage() {
   }, []);
 
   const handleConvert = () => {
+    setLoading(true);
     if (selectedCategory && toCurrency) {
       convertCurrency(selectedCategory, toCurrency, amount)
         .then((retrievedAmount) => {
           setRetrievedAmount(retrievedAmount);
+          setLoading(false);
         })
         .catch((error) => {
           console.error(error);
@@ -73,10 +78,12 @@ export function HomePage() {
     }
   };
   const handleConvertData = () => {
+    setGraphLoading(true);
     if (selectedCategory && toCurrency) {
       fetchHistoricRates(selectedCategory, toCurrency)
         .then((toCurrencyData) => {
           setGraphData(toCurrencyData);
+          setGraphLoading(false);
         })
         .catch((error) => {
           console.error(error);
@@ -86,7 +93,7 @@ export function HomePage() {
 
   return (
     <Stack>
-      <Typography color={colors.grey.grey_150} p={2} fontSize={25}>
+      <Typography color={colors.grey.grey_1000} p={2} fontSize={40}>
         Currency Exchange Rates
       </Typography>
 
@@ -100,40 +107,68 @@ export function HomePage() {
           variant="outlined"
           size="small"
         />
-        <FormControl sx={{ width: '20vw', marginLeft: '40px' }} size="small">
+        <FormControl sx={{ width: '20vw', px: 2 }} size="small">
           <InputLabel>From</InputLabel>
           <Select label="From" onChange={handleChange} value={selectedCategory}>
-            <MenuItem value="All Categories">All Categories</MenuItem>
+            <MenuItem value="All Categories" sx={{ bgcolor: colors.grey.grey_150 }}>
+              All Categories
+            </MenuItem>
             {currency.map((ca, index) => (
-              <MenuItem key={index} value={ca.iso}>
+              <MenuItem key={index} value={ca.iso} sx={{ bgcolor: colors.grey.grey_150 }}>
                 <ListItemIcon>
                   <CurrencyFlag currency={ca.iso} />
+                  <Typography px={1}>
+                    {ca.iso} {ca.currency_name}
+                  </Typography>
                 </ListItemIcon>
-                <Typography pr={1}>
-                  {' '}
-                  {ca.iso} {ca.currency_name}
-                </Typography>
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ width: '20vw', marginLeft: '40px' }} size="small">
+        <FormControl sx={{ width: '20vw', px: 1 }} size="small">
           <InputLabel>To</InputLabel>
-          <Select label="From" onChange={handleSecondChange} value={toCurrency}>
-            <MenuItem value="All Currencies">All Currencies</MenuItem>
+          <Select
+            label="From"
+            onChange={handleSecondChange}
+            value={toCurrency}
+            sx={{ color: colors.grey.grey_100 }}
+          >
+            <MenuItem value="All Currencies" sx={{ bgcolor: colors.grey.grey_150 }}>
+              All Currencies
+            </MenuItem>
             {currency.map((ca, index) => (
-              <MenuItem key={index} value={ca.iso}>
+              <MenuItem
+                key={index}
+                value={ca.iso}
+                sx={{ bgcolor: colors.grey.grey_900, color: colors.grey.grey_100 }}
+              >
                 <ListItemIcon>
                   <CurrencyFlag currency={ca.iso} />
+                  <Typography px={1}>
+                    {ca.iso} {ca.currency_name}
+                  </Typography>
                 </ListItemIcon>
-                <Typography pr={1}> {ca.iso}</Typography>
-                {ca.currency_name}
               </MenuItem>
             ))}{' '}
           </Select>
         </FormControl>
-        <Button onClick={handleConvert}>Convert </Button>
-        <Button onClick={handleConvertData}>Convert </Button>
+        <CustomButton
+          variant="contained"
+          onClick={handleConvert}
+          loading={loading}
+          disabled={!toCurrency}
+          sx={{ mx: 1, backgroundColor: colors.grey.grey_1000 }}
+        >
+          Publish
+        </CustomButton>
+        <CustomButton
+          variant="contained"
+          onClick={handleConvertData}
+          loading={graphLoading}
+          sx={{ mx: 1, bgcolor: colors.grey.grey_1000 }}
+        >
+          Get Historic Data
+        </CustomButton>
 
         <Typography color={colors.grey.grey_200}>
           {amount}
@@ -141,8 +176,8 @@ export function HomePage() {
           {toCurrency}
         </Typography>
       </Stack>
-      <Stack sx={{ height: '50vh' }} p={2}>
-        <LineChart data={graphData} />
+      <Stack sx={{ height: '50vh' }} px={30} py={5}>
+        {graphData.length > 0 && <LineChart data={graphData} />}
       </Stack>
     </Stack>
   );
