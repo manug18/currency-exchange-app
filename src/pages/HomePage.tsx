@@ -156,25 +156,29 @@ export function HomePage() {
           variant="contained"
           onClick={handleConvert}
           loading={loading}
-          disabled={!toCurrency}
+          disabled={!toCurrency || !selectedCategory}
           sx={{ mx: 1, backgroundColor: colors.grey.grey_1000 }}
         >
-          Publish
+          Convert
         </CustomButton>
         <CustomButton
           variant="contained"
           onClick={handleConvertData}
+          disabled={!toCurrency || !selectedCategory}
           loading={graphLoading}
           sx={{ mx: 1, bgcolor: colors.grey.grey_1000 }}
         >
-          Get Historic Data
+          Get Historic Conversion
         </CustomButton>
-
-        <Typography color={colors.grey.grey_200}>
-          {amount}
-          {selectedCategory}={retrievedAmount}
-          {toCurrency}
-        </Typography>
+      </Stack>
+      <Stack p={2}>
+        {retrievedAmount && (
+          <Typography color={colors.grey.grey_1000} fontSize={20}>
+            {amount}
+            {selectedCategory}={retrievedAmount}
+            {toCurrency}
+          </Typography>
+        )}
       </Stack>
       <Stack sx={{ height: '50vh' }} px={30} py={5}>
         {graphData.length > 0 && <LineChart data={graphData} />}
